@@ -1,0 +1,25 @@
+{
+  "hubot": {
+    "auto_merge": false,
+    "repository": "MyOrg/my-org-hubot",
+    "environments": ["production"],
+    "required_contexts": ["ci/janky", "ci/travis-ci"],
+
+    "provider": "heroku",
+    "heroku_name": "my-orgs-hubot"
+  },
+
+  "hubot-deploy": {
+    "repository": "atmos/hubot-deploy",
+    "environments": ["production"],
+
+    "provider": "npm"
+  },
+
+  "github": {
+    "repository": "github/github",
+    "environments": ["production","staging"],
+
+    "provider": "capistrano"
+  }
+}
