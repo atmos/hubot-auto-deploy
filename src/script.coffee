@@ -37,12 +37,14 @@ module.exports = (robot) ->
       when "auto-deploy:enable"
         msg.reply "Enabling #{name} in #{environment}..."
         hook.get (err) ->
-          hook.enable environment, (err, data) ->
+          hook.addEnvironment(environment)
+          hook.save (err, data) ->
             msg.reply hook.statusLine()
       when "auto-deploy:disable"
         msg.reply "Disabling #{name} in #{environment}..."
         hook.get (err) ->
-          hook.disable environment, (err, data) ->
+          hook.removeEnvironment(environment)
+          hook.save (err, data) ->
             msg.reply hook.statusLine()
       when "auto-deploy:enable:status"
         msg.reply "Commit status enabling #{name}..."

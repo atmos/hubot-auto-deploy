@@ -69,32 +69,27 @@ class Hook
     @config.active = not @config.active if @config
     @save(cb)
 
-  disable: (environment, cb) ->
+  removeEnvironment: (environment) ->
     index = @environments.indexOf(environment)
     if index > -1
       @environments.splice(index, 1)
-    @save(cb)
 
-  enable: (environment, cb) ->
+  addEnvironment: (environment) ->
     @environments.push(environment)
-
-    @active = true
-    @config.active = true if @config
-    @save(cb)
 
   enableStatusDeployment: (cb) ->
     if @config
       @config.config.deploy_on_push   = '0'
       @config.config.deploy_on_status = '1'
     @deployOnStatus = true
-    @enable(cb)
+    @save(cb)
 
   enablePushDeployment: (cb) ->
     if @config
       @config.config.deploy_on_push   = '1'
       @config.config.deploy_on_status = '0'
     @deployOnStatus = false
-    @enable(cb)
+    @save(cb)
 
   statusLine: ->
     str  = "#{@name} is "
@@ -104,7 +99,7 @@ class Hook
         str += " green commit statuses to the master branch."
       else
         str += " pushes to the master branch."
-      str += " Environments: #{@config.config.environments}."
+      str += " Environments: #{@environments.unique().join(',')}."
     else
       str += "not auto-deploying."
     str
