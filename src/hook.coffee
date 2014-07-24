@@ -134,7 +134,10 @@ class Hook
 
     api.get path, {}, (err, status, body, headers) =>
       hooks = (hook for hook in body when hook.name is "autodeploy")
-      @config = hooks[0] if hooks.length > 0
+      if hooks.length > 0
+        @config = hooks[0]
+        @environments = @config.config.environments.split(',')
+
       cb(err)
 
   patch: (cb) ->
