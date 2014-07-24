@@ -15,13 +15,15 @@ Array::unique = ->
 class Hook
   @APPS_FILE = process.env['HUBOT_DEPLOY_APPS_JSON'] or "apps.json"
 
-  constructor: (@name) ->
+  constructor: (@name, @token) ->
     @environments     = [ "production" ]
     @requiredContexts = [ ]
 
     @active           = true
     @config           = null
     @deployOnStatus   = false
+
+    @token          or= process.env.HUBOT_GITHUB_TOKEN
 
     try
       applications = JSON.parse(Fs.readFileSync(@constructor.APPS_FILE).toString())
@@ -68,18 +70,48 @@ class Hook
 
   requestBody: ->
     name: "autodeploy"
-    active: @attrEnabled(@isActive())
+    events: ["push", "status"]
+    active: @isActive()
     config:
+      github_token: @token
       environments: @environments.unique().join(',')
       deploy_on_push: @attrEnabled(@isDeployingOnPush())
       deploy_on_status: @attrEnabled(@isDeployingOnStatus())
       status_contexts: @statusContexts()
 
+  disable: (cb) ->
+    @active = false
+    @config.active = false if @config
+    @save(cb)
+
+  enable: (cb) ->
+    @active = true
+    @config.active = true if @config
+    @save(cb)
+
+  enableStatusDeployment: (cb) ->
+    if @config
+      @config.config.deploy_on_push   = '0'
+      @config.config.deploy_on_status = '1'
+    @deployOnStatus = true
+    @enable(cb)
+
+  enablePushDeployment: (cb) ->
+    if @config
+      @config.config.deploy_on_push   = '1'
+      @config.config.deploy_on_status = '0'
+    @deployOnStatus = false
+    @enable(cb)
+
+  isDeployingOnStatus: ->
+    if @config
+      @config.config.deploy_on_status == '1'
+
   statusLine: ->
     str  = "#{@name} is "
     if @config and @config.active == true
       str += "auto-deploying on"
-      if @config.deploy_on_status == '1'
+      if @config.config.deploy_on_status == '1'
         str += " green commit statuses to the master branch."
       else
         str += " pushes to the master branch."
@@ -88,33 +120,35 @@ class Hook
       str += "not auto-deploying."
     str
 
+  save: (cb) ->
+    if @config
+      @patch (err, data) ->
+        cb(err, data)
+    else
+      @post (err, data) ->
+        cb(err, data)
+
   get: (cb) ->
     path = "repos/#{@repository}/hooks"
 
-    api.get path, { }, (err, status, body, headers) =>
+    api.get path, {}, (err, status, body, headers) =>
       hooks = (hook for hook in body when hook.name is "autodeploy")
       @config = hooks[0] if hooks.length > 0
       cb(err)
 
-  put: (cb) ->
+  patch: (cb) ->
+    path     = "repos/#{@repository}/hooks/#{@config.id}"
+    postBody = @requestBody()
+
+    api.post path, postBody, (err, status, body, headers) ->
+      cb(err, body)
 
   post: (cb) ->
-    path       = "repos/#{@repository}/hooks"
-    name       = @name
+    path     = "repos/#{@repository}/hooks"
+    postBody = @requestBody()
 
-    message = "Unkown callback for hooks"
-
-    api.post path, @requestBody(), (err, status, body, headers) ->
-      data = body
-
-      if err
-        data = err
-        console.log err unless process.env.NODE_ENV == 'test'
-
-      if data['message']
-        bodyMessage = data['message']
-
-      cb message
+    api.post path, postBody, (err, status, body, headers) ->
+      cb(err, body)
 
   # Private Methods
   configureEnvironments: ->

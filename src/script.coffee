@@ -24,11 +24,27 @@ module.exports = (robot) ->
 
     switch task
       when "auto-deploy:enable"
-        msg.reply "auto-deploy:enable is unavailable"
+        msg.reply "Enabling #{name}..."
+        hook.get (err) ->
+          hook.enable (err, data) ->
+            msg.reply hook.statusLine()
+      when "auto-deploy:enable:status"
+        msg.reply "Commit status enabling #{name}..."
+        hook.get (err) ->
+          hook.enableStatusDeployment (err, data) ->
+            msg.reply hook.statusLine()
+      when "auto-deploy:enable:push"
+        msg.reply "Push enabling #{name}..."
+        hook.get (err) ->
+          hook.enablePushDeployment (err, data) ->
+            msg.reply hook.statusLine()
       when "auto-deploy:disable"
-        msg.reply "auto-deploy:disable is unavailable"
+        msg.reply "Disabling #{name}..."
+        hook.get (err) ->
+          hook.disable (err, data) ->
+            msg.reply hook.statusLine()
       when "auto-deploy:status"
-        hook.get (err, data) ->
+        hook.get (err) ->
           msg.reply hook.statusLine()
       else
-        msg.reply "auto-deploy is unavailable"
+        msg.reply "#{task} is unavailable. Sorry."
