@@ -2,6 +2,7 @@
 #   Configure auto-deployment of GitHub repos from chat - https://github.com/atmos/hubot-auto-deploy
 #
 # Commands:
+#   hubot auto-deploy:status <app> in <env> - Check the status of auto-deployment for the app in environment
 #   hubot auto-deploy:enable:push <app> in <env> - enable auto-deployment for the app on push in environment
 #   hubot auto-deploy:enable:status <app> in <env> - enable auto-deployment for the app on commit status in environment
 #   hubot auto-deploy:disable <app> in <env> - disable auto-deployment for the app in environment
