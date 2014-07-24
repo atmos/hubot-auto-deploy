@@ -59,25 +59,11 @@ class Hook
     else
       @deployOnStatus
 
-  attrEnabled: (val) ->
-    if val then "1" else "0"
-
   statusContexts: ->
     if @requiredContexts
       @requiredContexts.unique().join(',')
     else
       "default"
-
-  requestBody: ->
-    name: "autodeploy"
-    events: ["push", "status"]
-    active: @isActive()
-    config:
-      github_token: @token
-      environments: @environments.unique().join(',')
-      deploy_on_push: @attrEnabled(@isDeployingOnPush())
-      deploy_on_status: @attrEnabled(@isDeployingOnStatus())
-      status_contexts: @statusContexts()
 
   disable: (cb) ->
     @active = false
@@ -103,10 +89,6 @@ class Hook
     @deployOnStatus = false
     @enable(cb)
 
-  isDeployingOnStatus: ->
-    if @config
-      @config.config.deploy_on_status == '1'
-
   statusLine: ->
     str  = "#{@name} is "
     if @config and @config.active == true
@@ -128,6 +110,18 @@ class Hook
       @post (err, data) ->
         cb(err, data)
 
+  requestBody: ->
+    name: "autodeploy"
+    events: ["push", "status"]
+    active: @isActive()
+    config:
+      github_token: @token
+      environments: @environments.unique().join(',')
+      deploy_on_push: @isDeployingOnPush()
+      deploy_on_status: @isDeployingOnStatus()
+      status_contexts: @statusContexts()
+
+  # Private Methods
   get: (cb) ->
     path = "repos/#{@repository}/hooks"
 
@@ -150,7 +144,6 @@ class Hook
     api.post path, postBody, (err, status, body, headers) ->
       cb(err, body)
 
-  # Private Methods
   configureEnvironments: ->
     if @application['environments']?
       @environments = @application['environments']
