@@ -2,10 +2,12 @@
 #   Configure auto-deployment of GitHub repos from chat - https://github.com/atmos/hubot-auto-deploy
 #
 # Commands:
-#   hubot auto-deploy:status <app> in <env> - Check the status of auto-deployment for the app in environment
-#   hubot auto-deploy:enable:push <app> in <env> - enable auto-deployment for the app on push in environment
-#   hubot auto-deploy:enable:status <app> in <env> - enable auto-deployment for the app on commit status in environment
+#   hubot auto-deploy:status <app> - Check the status of auto-deployment for the app in environment
+#   hubot auto-deploy:toggle <app> - Toggle on/off auto-deployment for the app in all environments.
+#   hubot auto-deploy:enable <app> in <env> - enable auto-deployment for the app on push in environment
 #   hubot auto-deploy:disable <app> in <env> - disable auto-deployment for the app in environment
+#   hubot auto-deploy:enable:push <app> - enable auto-deployment for the app on push
+#   hubot auto-deploy:enable:status <app> - enable auto-deployment for the app on commit status
 #
 supported_tasks = [ "auto-deploy:enable", "auto-deploy:disable" ]
 
@@ -15,8 +17,9 @@ Patterns = require(Path.join(__dirname, "patterns"))
 
 module.exports = (robot) ->
   robot.respond Patterns.AutoDeployPattern, (msg) ->
-    task = msg.match[1]
-    name = msg.match[2]
+    task        = msg.match[1]
+    name        = msg.match[2]
+    environment = msg.match[3] or 'production'
 
     hook = new Hook(name)
     unless hook.isValidApp()
@@ -27,15 +30,19 @@ module.exports = (robot) ->
       when "auto-deploy:status"
         hook.get (err) ->
           msg.reply hook.statusLine()
-      when "auto-deploy:enable"
-        msg.reply "Enabling #{name}..."
+      when "auto-deploy:toggle"
         hook.get (err) ->
-          hook.enable (err, data) ->
+          hook.toggle (err, data) ->
+            msg.reply hook.statusLine()
+      when "auto-deploy:enable"
+        msg.reply "Enabling #{name} in #{environment}..."
+        hook.get (err) ->
+          hook.enable environment, (err, data) ->
             msg.reply hook.statusLine()
       when "auto-deploy:disable"
-        msg.reply "Disabling #{name}..."
+        msg.reply "Disabling #{name} in #{environment}..."
         hook.get (err) ->
-          hook.disable (err, data) ->
+          hook.disable environment, (err, data) ->
             msg.reply hook.statusLine()
       when "auto-deploy:enable:status"
         msg.reply "Commit status enabling #{name}..."

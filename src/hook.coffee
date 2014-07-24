@@ -36,7 +36,6 @@ class Hook
       @repository = @application['repository']
 
       @configureRequiredContexts()
-      @configureEnvironments()
 
   isValidApp: ->
     @application?
@@ -65,12 +64,20 @@ class Hook
     else
       "default"
 
-  disable: (cb) ->
-    @active = false
-    @config.active = false if @config
+  toggle: (cb) ->
+    @active = not @active
+    @config.active = not @config.active if @config
     @save(cb)
 
-  enable: (cb) ->
+  disable: (environment, cb) ->
+    index = @environments.indexOf(environment)
+    if index > -1
+      @environments.splice(index, 1)
+    @save(cb)
+
+  enable: (environment, cb) ->
+    @environments.push(environment)
+
     @active = true
     @config.active = true if @config
     @save(cb)
@@ -143,10 +150,6 @@ class Hook
 
     api.post path, postBody, (err, status, body, headers) ->
       cb(err, body)
-
-  configureEnvironments: ->
-    if @application['environments']?
-      @environments = @application['environments']
 
   configureRequiredContexts: ->
     if @application['required_contexts']?
