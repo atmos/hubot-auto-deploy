@@ -40,24 +40,6 @@ class Hook
   isValidApp: ->
     @application?
 
-  isActive: ->
-    if @config
-      @config.active == true
-    else
-      @active
-
-  isDeployingOnPush: ->
-    if @config
-      @config.config.deploy_on_push == '1'
-    else
-      not @deployOnStatus
-
-  isDeployingOnStatus: ->
-    if @config
-      @config.config.deploy_on_status == '1'
-    else
-      @deployOnStatus
-
   statusContexts: ->
     if @requiredContexts
       @requiredContexts.unique().join(',')
@@ -66,7 +48,6 @@ class Hook
 
   toggle: (cb) ->
     @active = not @active
-    @config.active = not @config.active if @config
     @save(cb)
 
   removeEnvironment: (environment) ->
@@ -78,16 +59,10 @@ class Hook
     @environments.push(environment)
 
   enableStatusDeployment: (cb) ->
-    if @config
-      @config.config.deploy_on_push   = '0'
-      @config.config.deploy_on_status = '1'
     @deployOnStatus = true
     @save(cb)
 
   enablePushDeployment: (cb) ->
-    if @config
-      @config.config.deploy_on_push   = '1'
-      @config.config.deploy_on_status = '0'
     @deployOnStatus = false
     @save(cb)
 
@@ -95,7 +70,7 @@ class Hook
     str  = "#{@name} is "
     if @config and @config.active == true
       str += "auto-deploying on"
-      if @config.config.deploy_on_status == '1'
+      if @deployOnStatus
         str += " green commit statuses to the master branch."
       else
         str += " pushes to the master branch."
@@ -115,26 +90,28 @@ class Hook
   requestBody: ->
     name: "autodeploy"
     events: ["push", "status"]
-    active: @isActive()
+    active: @active
     config:
       github_token: @token
       environments: @environments.unique().join(',')
-      deploy_on_push: @isDeployingOnPush()
-      deploy_on_status: @isDeployingOnStatus()
+      deploy_on_push: not @deployOnStatus
+      deploy_on_status: @deployOnStatus
       status_contexts: @statusContexts()
 
-  # Private Methods
   get: (cb) ->
     path = "repos/#{@repository}/hooks"
-
     api.get path, {}, (err, status, body, headers) =>
-      hooks = (hook for hook in body when hook.name is "autodeploy")
-      if hooks.length > 0
-        @config = hooks[0]
-        @environments = @config.config.environments.split(',')
+      unless err
+        hooks = (hook for hook in body when hook.name is "autodeploy")
+        if hooks.length > 0
+          @config = hooks[0]
+          @environments = @config.config.environments.split(',')
+          @deployOnStatus = @config.config.deploy_on_status == '1'
+          @active = @config.active == true
 
       cb(err)
 
+  # Private Methods
   patch: (cb) ->
     path     = "repos/#{@repository}/hooks/#{@config.id}"
     postBody = @requestBody()

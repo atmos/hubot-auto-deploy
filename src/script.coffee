@@ -16,6 +16,9 @@ Hook     = require(Path.join(__dirname, "hook")).Hook
 Patterns = require(Path.join(__dirname, "patterns"))
 
 module.exports = (robot) ->
+  failureMessage = (hook, err) ->
+    "Unable to access #{hook.repository} hooks. #{err.message}(#{err.statusCode})"
+
   robot.respond Patterns.AutoDeployPattern, (msg) ->
     task        = msg.match[1]
     name        = msg.match[2]
@@ -29,32 +32,46 @@ module.exports = (robot) ->
     switch task
       when "auto-deploy:status"
         hook.get (err) ->
-          msg.reply hook.statusLine()
+          if err
+            msg.reply failureMessage(hook, err)
+          else
+            msg.reply hook.statusLine()
       when "auto-deploy:toggle"
         hook.get (err) ->
-          hook.toggle (err, data) ->
-            msg.reply hook.statusLine()
+          if err
+            msg.reply failureMessage(hook, err)
+          else
+            hook.toggle (err, data) ->
+              msg.reply hook.statusLine()
       when "auto-deploy:enable"
-        msg.reply "Enabling #{name} in #{environment}..."
         hook.get (err) ->
-          hook.addEnvironment(environment)
-          hook.save (err, data) ->
-            msg.reply hook.statusLine()
+          if err
+            msg.reply failureMessage(hook, err)
+          else
+            hook.addEnvironment(environment)
+            hook.save (err, data) ->
+              msg.reply hook.statusLine()
       when "auto-deploy:disable"
-        msg.reply "Disabling #{name} in #{environment}..."
         hook.get (err) ->
-          hook.removeEnvironment(environment)
-          hook.save (err, data) ->
-            msg.reply hook.statusLine()
+          if err
+            msg.reply failureMessage(hook, err)
+          else
+            hook.removeEnvironment(environment)
+            hook.save (err, data) ->
+              msg.reply hook.statusLine()
       when "auto-deploy:enable:status"
-        msg.reply "Commit status enabling #{name}..."
         hook.get (err) ->
-          hook.enableStatusDeployment (err, data) ->
-            msg.reply hook.statusLine()
+          if err
+            msg.reply failureMessage(hook, err)
+          else
+            hook.enableStatusDeployment (err, data) ->
+              msg.reply hook.statusLine()
       when "auto-deploy:enable:push"
-        msg.reply "Push enabling #{name}..."
         hook.get (err) ->
-          hook.enablePushDeployment (err, data) ->
-            msg.reply hook.statusLine()
+          if err
+            msg.reply failureMessage(hook, err)
+          else
+            hook.enablePushDeployment (err, data) ->
+              msg.reply hook.statusLine()
       else
         msg.reply "#{task} is unavailable. Sorry."
