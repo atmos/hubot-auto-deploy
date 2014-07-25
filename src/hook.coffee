@@ -90,7 +90,6 @@ class Hook
     config:
       github_token: @token
       environments: @environments.unique().join(',')
-      deploy_on_push: not @deployOnStatus
       deploy_on_status: @deployOnStatus
       status_contexts: @statusContexts()
 
