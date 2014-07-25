@@ -68,7 +68,7 @@ class Hook
 
   statusLine: ->
     str  = "#{@name} is "
-    if @config and @config.active == true
+    if @active
       str += "auto-deploying on"
       if @deployOnStatus
         str += " green commit statuses to the master branch."
@@ -80,12 +80,8 @@ class Hook
     str
 
   save: (cb) ->
-    if @config
-      @patch (err, data) ->
-        cb(err, data)
-    else
-      @post (err, data) ->
-        cb(err, data)
+    @post (err, data) ->
+      cb(err, data)
 
   requestBody: ->
     name: "autodeploy"
@@ -112,18 +108,19 @@ class Hook
       cb(err)
 
   # Private Methods
-  patch: (cb) ->
-    path     = "repos/#{@repository}/hooks/#{@config.id}"
-    postBody = @requestBody()
-
-    api.post path, postBody, (err, status, body, headers) ->
-      cb(err, body)
-
   post: (cb) ->
     path     = "repos/#{@repository}/hooks"
     postBody = @requestBody()
 
+    if @config
+      path += "/#{@config.id}"
+
     api.post path, postBody, (err, status, body, headers) ->
+      unless err
+        @environments = body.config.environments.split(',')
+        @deployOnStatus = body.config.deploy_on_status == '1'
+        @active = body.active == true
+
       cb(err, body)
 
   configureRequiredContexts: ->
