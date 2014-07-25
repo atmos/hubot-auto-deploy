@@ -44,7 +44,7 @@ class Hook
     if @requiredContexts
       @requiredContexts.unique().join(',')
     else
-      "default"
+      ""
 
   toggle: (cb) ->
     @active = not @active
@@ -88,10 +88,10 @@ class Hook
     events: ["push", "status"]
     active: @active
     config:
+      contexts: @statusContexts()
       github_token: @token
       environments: @environments.unique().join(',')
       deploy_on_status: @deployOnStatus
-      status_contexts: @statusContexts()
 
   get: (cb) ->
     path = "repos/#{@repository}/hooks"
