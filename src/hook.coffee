@@ -88,9 +88,9 @@ class Hook
     events: ["push", "status"]
     active: @active
     config:
-      contexts: @statusContexts()
       github_token: @token
       environments: @environments.unique().join(',')
+      status_contexts: @statusContexts()
       deploy_on_status: @deployOnStatus
 
   get: (cb) ->
