@@ -27,7 +27,7 @@ describe "Hook fixtures", () ->
       assert.equal("autodeploy", body.name)
       assert.equal("0", body.config.deploy_on_status)
       assert.equal("production", body.config.environments)
-      assert.equal("ci/janky,ci/travis-ci", body.config.contexts)
+      assert.equal("ci/janky,ci/travis-ci", body.config.status_contexts)
     
     it "handles unique environments etc", () ->
       hook = new Hook("hubot")
@@ -42,5 +42,5 @@ describe "Hook fixtures", () ->
       assert.equal("autodeploy", body.name)
       assert.equal("1", body.config.deploy_on_status)
       assert.equal("production,staging", body.config.environments)
-      assert.equal("", body.config.contexts)
+      assert.equal("", body.config.status_contexts)
 
