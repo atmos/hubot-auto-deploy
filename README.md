@@ -19,7 +19,6 @@ You need to set the following environmental variables.
 
 ## TODO
 
-* Preserve payload from previous deployments for chat meta info
 * Handle automated deployment of non-default branches.
 
 ## See Also
