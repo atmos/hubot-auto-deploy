@@ -4,6 +4,9 @@
 
 This script interacts with the GitHub API to manage the [Automated Deployment service][6] built in to GitHub services.
 
+![chat config](https://cloud.githubusercontent.com/assets/38/3846663/b8ef9cbc-1e5e-11e4-88b8-16bcff97c9db.jpg)
+
+
 ## Installation
 
 * Add hubot-auto-deploy to your `package.json` file.
