@@ -19,7 +19,6 @@ You need to set the following environmental variables.
 
 ## TODO
 
-* Implement the status based workflow
 * Preserve payload from previous deployments for chat meta info
 * Handle automated deployment of non-default branches.
 
@@ -34,4 +33,4 @@ You need to set the following environmental variables.
 [3]: https://hubot.github.com
 [4]: https://developer.github.com/v3/activity/events/types/#deploymentevent
 [5]: https://developer.github.com/v3/repos/deployments/
-[6]: https://github.com/github/github-services/blob/master/lib/services/auto_deploy.rb
+[6]: http://www.atmos.org/auto-deployment/
