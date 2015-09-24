@@ -35,4 +35,4 @@ You need to set the following environmental variables.
 [3]: https://hubot.github.com
 [4]: https://developer.github.com/v3/activity/events/types/#deploymentevent
 [5]: https://developer.github.com/v3/repos/deployments/
-[6]: http://www.atmos.org/auto-deployment/
+[6]: http://www.atmos.org/github-services/auto-deployment/
